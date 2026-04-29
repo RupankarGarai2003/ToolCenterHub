@@ -1,0 +1,90 @@
+/* Main Button */
+.button {
+  --clr: #7808d0;
+
+  line-height: 1;
+  text-decoration: none;
+  display: inline-flex;
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.75rem;
+
+  background-color: var(--clr);
+  color: #ffffff;
+
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+
+  padding: 0.75rem 1.5rem;
+  padding-left: 20px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover from button OR parent (IMPORTANT) */
+.button:hover,
+.group:hover .button {
+  background-color: #000000;
+  transform: translateY(-1px);
+}
+
+/* Click */
+.button:active {
+  transform: translateY(0);
+}
+
+/* Icon Wrapper */
+.iconWrapper {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+
+  position: relative;
+
+  color: var(--clr);
+  background-color: #ffffff;
+
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+}
+
+/* Icon color change */
+.button:hover .iconWrapper,
+.group:hover .button .iconWrapper {
+  color: #000000;
+}
+
+/* Icons */
+.iconSvg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Hidden icon */
+.iconSvgCopy {
+  position: absolute;
+  transform: translate(-150%, 150%);
+}
+
+/* Animation */
+.button:hover .iconSvg:first-child,
+.group:hover .button .iconSvg:first-child {
+  transform: translate(150%, -150%);
+}
+
+.button:hover .iconSvgCopy,
+.group:hover .button .iconSvgCopy {
+  transform: translate(0, 0);
+  transition: transform 0.3s ease-in-out 0.1s;
+}

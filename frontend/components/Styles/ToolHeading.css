@@ -1,0 +1,102 @@
+.heading-wrapper {
+  margin-bottom: 40px;
+  /* more breathing space */
+}
+
+/* alignment */
+.heading-wrapper.center {
+  text-align: center;
+}
+
+.heading-wrapper.left {
+  text-align: left;
+}
+
+.heading-wrapper.right {
+  text-align: right;
+}
+
+/* heading base */
+.tool-heading {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.8px;
+  /* tighter = modern look */
+  line-height: 1.15;
+  color: #111827;
+  display: inline-block;
+  position: relative;
+  max-width: 900px;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* sizes */
+.tool-heading.sm {
+  font-size: 1.5rem;
+}
+
+.tool-heading.md {
+  font-size: 2rem;
+}
+
+.tool-heading.lg {
+  font-size: 2.5rem;
+}
+
+.tool-heading.xl {
+  font-size: 3rem;
+}
+
+/* responsive scaling (IMPORTANT) */
+@media (max-width: 768px) {
+  .tool-heading.xl {
+    font-size: 2.2rem;
+  }
+
+  .tool-heading.lg {
+    font-size: 2rem;
+  }
+}
+
+clean underline
+.tool-heading::after {
+  content: "";
+  display: block;
+  width: 50%;
+  height: 3px;
+  background: #111827;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  opacity: 0.15;
+}
+
+/* alignment fix for underline */
+.heading-wrapper.left .tool-heading::after {
+  margin-left: 0;
+}
+
+.heading-wrapper.right .tool-heading::after {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* subtitle */
+.tool-subheading {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-family: var(--font-heading);
+  /* better readability */
+  max-width: 600px;
+}
+
+/* center subtitle nicely */
+.heading-wrapper.center .tool-subheading {
+  margin-left: auto;
+  margin-right: auto;
+}
