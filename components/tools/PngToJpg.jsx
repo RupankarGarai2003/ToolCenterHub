@@ -4,6 +4,12 @@ import { useState } from "react";
 import ImageUploader from "./ImageUploader";
 import { Download } from "lucide-react";
 
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+
 export default function PngToJpg() {
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
@@ -108,6 +114,7 @@ export default function PngToJpg() {
   };
 
   return (
+    <>
     <div className="max-w-md mx-auto space-y-8">
 
       {/* UPLOADER */}
@@ -182,5 +189,13 @@ export default function PngToJpg() {
       )}
 
     </div>
+    <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

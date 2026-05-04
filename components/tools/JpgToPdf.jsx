@@ -1,20 +1,37 @@
 "use client";
-import HowToUse from "@/components/tool-content/HowToUse";
-import FAQ from "@/components/tool-content/FAQ";
+
 import { useState, useRef } from "react";
 import { PDFDocument } from "pdf-lib";
-import { Upload, Download, Trash2, Image as ImageIcon } from "lucide-react";
+import { Upload, Download, Trash2 } from "lucide-react";
+
+import ToolLayout from "@/components/ToolLayout";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
 
 export default function JPGtoPDF() {
   const [images, setImages] = useState([]);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
   const inputRef = useRef(null);
 
+  // 📥 HANDLE FILES
   const handleFiles = (files) => {
     const imgs = Array.from(files).filter((f) =>
       f.type.startsWith("image/")
     );
+
+    if (imgs.length === 0) return;
+
+    // Limit
+    if (imgs.length + images.length > 20) {
+      alert("Max 20 images allowed");
+      return;
+    }
 
     const previews = imgs.map((file) => ({
       file,
@@ -25,46 +42,94 @@ export default function JPGtoPDF() {
     setPdfUrl(null);
   };
 
+  // 📂 INPUT CHANGE
+  const handleChange = (e) => {
+    handleFiles(e.target.files);
+  };
+
+  // 🔥 DRAG & DROP
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);
+  };
+
+  // ❌ REMOVE IMAGE
   const removeImage = (index) => {
+    URL.revokeObjectURL(images[index].url);
     setImages(images.filter((_, i) => i !== index));
   };
 
+  // 🔄 RESET
+  const reset = () => {
+    images.forEach((img) => URL.revokeObjectURL(img.url));
+    setImages([]);
+    setPdfUrl(null);
+  };
+
+  // 📄 CREATE PDF
   const createPDF = async () => {
     if (images.length === 0) return;
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const pdfDoc = await PDFDocument.create();
+      const pdfDoc = await PDFDocument.create();
 
-    for (const img of images) {
-      const bytes = await img.file.arrayBuffer();
+      for (const img of images) {
+        const bytes = await img.file.arrayBuffer();
 
-      let embedded;
-      if (img.file.type === "image/png") {
-        embedded = await pdfDoc.embedPng(bytes);
-      } else {
-        embedded = await pdfDoc.embedJpg(bytes);
+        let embedded;
+        if (img.file.type === "image/png") {
+          embedded = await pdfDoc.embedPng(bytes);
+        } else {
+          embedded = await pdfDoc.embedJpg(bytes);
+        }
+
+        const { width, height } = embedded;
+
+        // Scale to A4 width
+        const maxWidth = 595;
+        const scale = width > maxWidth ? maxWidth / width : 1;
+
+        const page = pdfDoc.addPage([
+          width * scale,
+          height * scale,
+        ]);
+
+        page.drawImage(embedded, {
+          x: 0,
+          y: 0,
+          width: width * scale,
+          height: height * scale,
+        });
       }
 
-      const { width, height } = embedded.scale(1);
-
-      const page = pdfDoc.addPage([width, height]);
-      page.drawImage(embedded, {
-        x: 0,
-        y: 0,
-        width,
-        height,
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], {
+        type: "application/pdf",
       });
+
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (err) {
+      console.error(err);
+      alert("Error creating PDF");
+    } finally {
+      setLoading(false);
     }
-
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-
-    setPdfUrl(url);
-    setLoading(false);
   };
 
+  // 📥 DOWNLOAD
   const download = () => {
     if (!pdfUrl) return;
 
@@ -74,30 +139,31 @@ export default function JPGtoPDF() {
     a.click();
   };
 
-  const reset = () => {
-    setImages([]);
-    setPdfUrl(null);
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
-      <div className="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-6 space-y-6">
-        <h1 className="text-2xl font-semibold text-center">JPG to PDF</h1>
-
-        {/* Upload */}
+    <>
+      <ToolLayout title="JPG to PDF">
+        {/* Upload Box */}
         <div
           onClick={() => inputRef.current?.click()}
-          className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:bg-gray-50"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${
+            dragging ? "bg-blue-50 border-blue-400" : "hover:bg-gray-50"
+          }`}
         >
           <Upload className="mx-auto mb-2" />
-          <p className="text-sm">Upload Images</p>
+          <p className="text-sm">
+            Click or drag & drop images here
+          </p>
+
           <input
             ref={inputRef}
             type="file"
             multiple
             accept="image/*"
             className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
+            onChange={handleChange}
           />
         </div>
 
@@ -105,8 +171,16 @@ export default function JPGtoPDF() {
         {images.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {images.map((img, i) => (
-              <div key={i} className="relative border rounded-lg overflow-hidden">
-                <img src={img.url} alt="preview" className="w-full h-40 object-cover" />
+              <div
+                key={i}
+                className="relative border rounded-lg overflow-hidden"
+              >
+                <img
+                  src={img.url}
+                  alt="preview"
+                  className="w-full h-40 object-cover"
+                />
+
                 <button
                   onClick={() => removeImage(i)}
                   className="absolute top-2 right-2 bg-white p-1 rounded-full shadow"
@@ -118,12 +192,12 @@ export default function JPGtoPDF() {
           </div>
         )}
 
-        {/* Actions */}
+        {/* Convert */}
         {images.length > 0 && !pdfUrl && (
           <button
             onClick={createPDF}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg disabled:opacity-50"
           >
             {loading ? "Creating PDF..." : "Convert to PDF"}
           </button>
@@ -132,13 +206,16 @@ export default function JPGtoPDF() {
         {/* Result */}
         {pdfUrl && (
           <div className="space-y-4 text-center">
-            <p className="text-green-600">PDF created successfully</p>
+            <p className="text-green-600 font-medium">
+              PDF created successfully 🎉
+            </p>
 
             <button
               onClick={download}
               className="w-full bg-green-600 text-white py-2 rounded-lg"
             >
-              <Download className="inline mr-2" size={16} /> Download PDF
+              <Download className="inline mr-2" size={16} />
+              Download PDF
             </button>
 
             <button
@@ -151,19 +228,18 @@ export default function JPGtoPDF() {
         )}
 
         <p className="text-xs text-center text-gray-500">
-          🔒 Your files remain private and are processed in your browser.
+          🔒 Files are processed in your browser. Nothing is uploaded.
         </p>
-        {/* ✅ CONTENT BELOW TOOL */}
-        <div className="max-w-3xl w-full mt-16 space-y-10">
-          <HowToUse />
-          <FAQ />
-        </div>
+      </ToolLayout>
 
-      </div>
-
-    </div>
-
-
+      {/* Content Section */}
+      <div className="contentWrapper">
+              <About />
+              <HowToUse />
+              <Features />
+              <Benefits />
+              <FAQ />
+            </div>
+    </>
   );
-
 }

@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { Clipboard, Check, RotateCcw, Download } from "lucide-react";
 
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+
 export default function URLEncoder() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -44,6 +50,7 @@ export default function URLEncoder() {
   };
 
   return (
+    <>
     <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl p-6 space-y-6">
         <h1 className="text-2xl font-semibold text-center">URL Encoder</h1>
@@ -101,5 +108,13 @@ export default function URLEncoder() {
         </p>
       </div>
     </div>
+        <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }
