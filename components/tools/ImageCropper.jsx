@@ -16,12 +16,8 @@ export default function ImageCropper() {
   const [file, setFile] = useState(null);
   const [cropped, setCropped] = useState(null);
 
-  const [fileInfo, setFileInfo] = useState({
-    name: "",
-    size: "",
-    width: 0,
-    height: 0,
-  });
+  // ✅ FIX: use fileData + null
+  const [fileData, setFileData] = useState(null);
 
   const [ratio, setRatio] = useState("1:1");
   const [customW, setCustomW] = useState("");
@@ -39,27 +35,23 @@ export default function ImageCropper() {
       return;
     }
 
-    const reader = new FileReader();
+    const objectUrl = URL.createObjectURL(selected);
+    const img = new Image();
 
-    reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
+    img.onload = () => {
+      setPreview(objectUrl);
+      setFile(selected);
+      setCropped(null);
 
-      img.onload = () => {
-        setPreview(reader.result);
-        setFile(selected);
-        setCropped(null);
-
-        setFileInfo({
-          name: selected.name,
-          size: (selected.size / 1024).toFixed(1) + " KB",
-          width: img.width,
-          height: img.height,
-        });
-      };
+      setFileData({
+        name: selected.name,
+        size: (selected.size / 1024).toFixed(1) + " KB",
+        width: img.width,
+        height: img.height,
+      });
     };
 
-    reader.readAsDataURL(selected);
+    img.src = objectUrl;
   };
 
   // ❌ REMOVE
@@ -67,6 +59,7 @@ export default function ImageCropper() {
     setPreview(null);
     setFile(null);
     setCropped(null);
+    setFileData(null); // ✅ important
   };
 
   // 🔄 CROP LOGIC
@@ -127,7 +120,7 @@ export default function ImageCropper() {
         {/* UPLOADER */}
         <ImageUploader
           preview={preview}
-          fileInfo={fileInfo}
+          fileData={fileData} // ✅ FIXED
           onChange={handleChange}
           onRemove={handleRemove}
         />
@@ -148,15 +141,15 @@ export default function ImageCropper() {
                 <button
                   key={r}
                   onClick={() => setRatio(r)}
-                  className={`px-4 py-2 rounded border ${ratio === r ? "bg-blue-600 text-white" : ""
-                    }`}
+                  className={`px-4 py-2 rounded border ${
+                    ratio === r ? "bg-blue-600 text-white" : ""
+                  }`}
                 >
                   {r}
                 </button>
               ))}
             </div>
 
-            {/* CUSTOM SIZE */}
             {ratio === "custom" && (
               <div className="flex justify-center gap-2">
                 <input
@@ -181,25 +174,14 @@ export default function ImageCropper() {
         {/* CROP BUTTON */}
         {preview && !cropped && (
           <div className="flex justify-center">
-            {/* <button
-            onClick={handleCrop}
-            className="custom-btn font-bold text-sm"
-          >
-            Crop Image
-          </button> */}
-
             <CustomButton
-
               onClick={handleCrop}
               animation="ripple"
               btnSize="md"
               variant="success"
             >
-              Convert Now
+              Crop Image
             </CustomButton>
-
-
-
           </div>
         )}
 
@@ -209,26 +191,7 @@ export default function ImageCropper() {
             <img src={cropped} className="mx-auto max-h-72 rounded" />
 
             <div className="flex justify-center gap-6">
-              {/* <button
-                onClick={handleDownload}
-                className="download-btn"
-              >
-                <Download className="w-5 h-5" />
-
-             
-                <span className="download-tooltip">Download</span>
-              </button>
-
-              <button
-                onClick={handleRemove}
-                className="custom-btn font-bold text-sm"
-              >
-                Convert Another
-              </button> */}
-
-
               <CustomButton
-
                 onClick={handleRemove}
                 animation="ripple"
                 btnSize="md"
@@ -237,14 +200,18 @@ export default function ImageCropper() {
                 Convert Another
               </CustomButton>
 
-              <CustomButton variant="download" onClick={handleDownload} animation="bounce" />
+              <CustomButton
+                variant="download"
+                onClick={handleDownload}
+                animation="bounce"
+              />
             </div>
           </div>
         )}
 
         <canvas ref={canvasRef} className="hidden" />
       </div>
-      {/* 🔹 CONTENT SECTION */}
+
       <div className="contentWrapper">
         <About />
         <HowToUse />

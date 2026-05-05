@@ -10,7 +10,6 @@ export default function PDFMerger() {
   const [mergedUrl, setMergedUrl] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 📥 ADD FILE
   const handleFile = (file) => {
     if (file && file.type === "application/pdf") {
       setFiles((prev) => [...prev, file]);
@@ -32,20 +31,17 @@ export default function PDFMerger() {
   };
 
   const handleDragOver = (e) => e.preventDefault();
-  const handleDragLeave = () => { };
+  const handleDragLeave = () => {};
 
-  // ❌ REMOVE SINGLE FILE
   const removeFile = (index) => {
     setFiles(files.filter((_, i) => i !== index));
   };
 
-  // 🔄 RESET ALL
   const reset = () => {
     setFiles([]);
     setMergedUrl(null);
   };
 
-  // 🔥 MERGE PDFs
   const mergePDFs = async () => {
     if (files.length < 2) return;
 
@@ -73,7 +69,6 @@ export default function PDFMerger() {
     setLoading(false);
   };
 
-  // 📥 DOWNLOAD
   const download = () => {
     if (!mergedUrl) return;
 
@@ -84,35 +79,40 @@ export default function PDFMerger() {
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-6 py-8">
+    <div className="container ">
+    {/* <div className="max-w-md mx-auto py-10 px-4 space-y-6"> */}
 
-      {/* ✅ IMAGE UPLOADER (DOCUMENT MODE) */}
-{!mergedUrl && (
-  <ImageUploader
-    preview={null}
-    type="document"
-    fileData={null}
-    onChange={handleChange}
-    onDrop={handleDrop}
-    onDragOver={handleDragOver}
-    onDragLeave={handleDragLeave}
-    onRemove={() => {}}
-  />
-)}
+      {/* Upload Area */}
+      {!mergedUrl && (
+        <div >
+          <ImageUploader
+            preview={null}
+            type="document"
+            fileData={null}
+            onChange={handleChange}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onRemove={() => {}}
+          />
+        </div>
+      )}
 
-      {/* 📂 FILE LIST */}
+      {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
           {files.map((file, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-2 border rounded-2xl"
+              className="flex items-center justify-between px-4 py-3 bg-white border rounded-xl shadow-sm hover:shadow-md transition"
             >
-              <span className="text-sm truncate font-semibold">{file.name}</span>
+              <span className="text-sm font-medium truncate">
+                {file.name}
+              </span>
 
               <button
                 onClick={() => removeFile(index)}
-                className="text-red-500 hover:text-red-700 bg-gray-100 rounded-full w-[30px] h-[30px] shadow-[0_10px_10px_rgba(0,0,0,0.1)] flex items-center justify-center"
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition"
               >
                 <Trash2 size={16} />
               </button>
@@ -121,49 +121,45 @@ export default function PDFMerger() {
         </div>
       )}
 
-      {/* 🔥 MERGE BUTTON */}
+      {/* Merge Button */}
       {files.length > 1 && !mergedUrl && (
-        <div className="flex justify-center">
-          <button
-            onClick={mergePDFs}
-            disabled={loading}
-            className="custom-btn font-semibold text-sm"
-          >
-            {loading ? "Merging..." : "Merge PDFs"}
-          </button>
-        </div>
-
+        <button
+          onClick={mergePDFs}
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-black text-white font-semibold text-sm hover:opacity-90 disabled:opacity-50 transition"
+        >
+          {loading ? "Merging..." : "Merge PDFs"}
+        </button>
       )}
 
-      {/* ✅ RESULT */}
+      {/* Result Section */}
       {mergedUrl && (
-        <div className="space-y-4 text-center">
+        <div className="text-center space-y-5 bg-white p-6 rounded-2xl shadow-md">
 
-          <p className="text-green-600 font-semibold text-md">
+          <p className="text-green-600 font-semibold">
             PDF merged successfully
           </p>
-          <div className="flex justify-center gap-6">
+
+          <div className="flex justify-center gap-4">
+
+            {/* Reset */}
             <button
               onClick={reset}
-              className="custom-btn rounded-full flex gap-2 "
+              className="flex items-center gap-2 px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100 transition text-sm font-medium"
             >
               <RotateCcw className="w-4 h-4" />
-               <p className="font-semibold text-sm">Start over</p>
+              Start over
             </button>
+
+            {/* Download */}
             <button
               onClick={download}
-              className="download-btn"
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500 text-white hover:bg-green-600 transition shadow-lg"
             >
               <Download className="w-5 h-5" />
-
-              {/* Tooltip */}
-              <span className="download-tooltip">Download</span>
             </button>
+
           </div>
-
-
-
-
         </div>
       )}
     </div>

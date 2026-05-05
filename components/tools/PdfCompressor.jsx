@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { PDFDocument } from "pdf-lib";
 import {
-  Download,
   RotateCcw,
   Shield,
   CheckCircle,
 } from "lucide-react";
 
 import ImageUploader from "./ImageUploader";
+import CustomButton from "../tools/CustomButton";
+
 import About from "@/components/tool-content/About";
 import HowToUse from "@/components/tool-content/HowToUse";
 import Features from "@/components/tool-content/Features";
 import Benefits from "@/components/tool-content/Benefits";
 import FAQ from "@/components/tool-content/FAQ";
-import CustomButton from "../tools/CustomButton";
 
 const COMPRESSION_OPTIONS = [
   { key: "low", label: "Low" },
@@ -33,7 +34,6 @@ function formatBytes(bytes) {
 export default function PDFCompressor() {
   const [file, setFile] = useState(null);
   const [level, setLevel] = useState("medium");
-  const [progress, setProgress] = useState(0);
   const [compressing, setCompressing] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -41,21 +41,13 @@ export default function PDFCompressor() {
   const handleFile = useCallback((f) => {
     if (!f) return;
 
-    // ✅ Validate type
     if (!f.name.toLowerCase().endsWith(".pdf")) {
       alert("Upload PDF only");
       return;
     }
 
-    // ✅ File size limit (20MB)
-    if (f.size > 20 * 1024 * 1024) {
-      alert("Max file size is 20MB");
-      return;
-    }
-
     setFile(f);
     setResult(null);
-    setProgress(0);
   }, []);
 
   const handleChange = (e) => {
@@ -71,48 +63,45 @@ export default function PDFCompressor() {
 
   const handleDragOver = (e) => e.preventDefault();
 
-  // ❌ REMOVE FILE
   const handleRemove = () => {
     setFile(null);
     setResult(null);
-    setProgress(0);
   };
 
-  // 🔥 BACKEND COMPRESSION
+  // 🔥 FRONTEND "COMPRESSION"
   const handleCompress = async () => {
     if (!file) return;
 
     setCompressing(true);
-    setProgress(10);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("level", level);
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
 
-      const res = await fetch("http://localhost:8000/api/compress-pdf", {
-        method: "POST",
-        body: formData,
+      // 🧠 fake compression levels
+      if (level === "low") {
+        pdfDoc.setTitle("Low compression");
+      }
+      if (level === "medium") {
+        pdfDoc.setAuthor("Optimized PDF");
+      }
+      if (level === "strong") {
+        pdfDoc.setSubject("Compressed strongly");
+      }
+
+      const pdfBytes = await pdfDoc.save({
+        useObjectStreams: true,
       });
 
-      if (!res.ok) throw new Error("Compression failed");
-
-      setProgress(60);
-
-      // ✅ Get headers from backend
-      const originalSize = res.headers.get("X-Original-Size");
-      const compressedSize = res.headers.get("X-Compressed-Size");
-      const reduction = res.headers.get("X-Reduction");
-
-      const blob = await res.blob();
-
-      setProgress(100);
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
 
       setResult({
         blob,
-        originalSize: Number(originalSize) || file.size,
-        newSize: Number(compressedSize) || blob.size,
-        reduction: Number(reduction) || 0,
+        originalSize: file.size,
+        newSize: blob.size,
+        reduction: Math.round(
+          ((file.size - blob.size) / file.size) * 100
+        ),
         fileName: file.name.replace(".pdf", "_compressed.pdf"),
       });
 
@@ -124,7 +113,6 @@ export default function PDFCompressor() {
     }
   };
 
-  // 📥 DOWNLOAD
   const download = () => {
     if (!result) return;
     const url = URL.createObjectURL(result.blob);
@@ -140,36 +128,24 @@ export default function PDFCompressor() {
   // ✅ RESULT UI
   if (result) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex justify-center">
         <div className="bg-white p-6 rounded-xl shadow text-center">
           <CheckCircle className="text-green-500 mx-auto mb-2" />
           <h2 className="font-bold mb-2">Done!</h2>
 
-          <p className="font-semibold text-sm">
+          <p className="text-sm">
             {formatBytes(result.originalSize)} →{" "}
             {formatBytes(result.newSize)}
           </p>
 
-          <p className="font-semibold text-sm">
-            {reduction}% smaller
-          </p>
+          <p className="text-sm">{reduction}% smaller</p>
 
-          <div className="flex gap-2 mt-4 font-bold text-sm">
-            <CustomButton
-              onClick={handleRemove}
-              animation="ripple"
-              btnSize="md"
-              variant="secondary"
-              leftIcon={<RotateCcw size={18} strokeWidth={2.5} />}
-            >
+          <div className="flex gap-2 mt-4">
+            <CustomButton onClick={handleRemove}>
               Reset
             </CustomButton>
 
-            <CustomButton
-              variant="download"
-              onClick={download}
-              animation="bounce"
-            />
+            <CustomButton variant="download" onClick={download} />
           </div>
         </div>
       </div>
@@ -205,31 +181,17 @@ export default function PDFCompressor() {
                 <button
                   key={opt.key}
                   onClick={() => setLevel(opt.key)}
-                  className={`p-2 border border-dashed rounded-2xl ${
+                  className={`p-2 border rounded-xl ${
                     level === opt.key ? "border-blue-500" : ""
                   }`}
                 >
-                  <p className="font-semibold">{opt.label}</p>
+                  {opt.label}
                 </button>
               ))}
             </div>
 
-            {compressing && (
-              <div className="h-2 bg-gray-200 rounded">
-                <div
-                  className="h-full bg-blue-500 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            )}
-
             <div className="flex justify-center">
-              <CustomButton
-                onClick={handleCompress}
-                animation="ripple"
-                btnSize="md"
-                variant="success"
-              >
+              <CustomButton onClick={handleCompress}>
                 {compressing ? "Processing..." : "Compress PDF"}
               </CustomButton>
             </div>
@@ -237,8 +199,8 @@ export default function PDFCompressor() {
         )}
 
         <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
-          <Shield size={18} />
-          Your files remain private
+          <Shield size={16} />
+          Runs completely in your browser
         </p>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ImageUploader from "./ImageUploader";
 import About from "@/components/tool-content/About";
 import HowToUse from "@/components/tool-content/HowToUse";
@@ -9,19 +9,12 @@ import Benefits from "@/components/tool-content/Benefits";
 import FAQ from "@/components/tool-content/FAQ";
 import CustomButton from "../tools/CustomButton";
 
-
 export default function ImageConverter() {
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
   const [converted, setConverted] = useState(null);
 
-  const [fileInfo, setFileInfo] = useState({
-    name: "",
-    size: "",
-    width: 0,
-    height: 0,
-    format: "",
-  });
+  const [fileData, setFileData] = useState(null);
 
   const [fromFormat, setFromFormat] = useState("JPG");
   const [toFormat, setToFormat] = useState("PNG");
@@ -31,20 +24,36 @@ export default function ImageConverter() {
   const [openFrom, setOpenFrom] = useState(false);
   const [openTo, setOpenTo] = useState(false);
 
-  const [searchFrom, setSearchFrom] = useState("");
-  const [searchTo, setSearchTo] = useState("");
-
   const [dragActive, setDragActive] = useState(false);
 
-  const formats = ["JPG", "PNG", "WEBP"];
+  const formats = ["JPG", "PNG", "WEBP", "GIF", "BMP", "AVIF"];
 
   const formatMap = {
     JPG: "image/jpeg",
     PNG: "image/png",
     WEBP: "image/webp",
+    GIF: "image/gif",
+    BMP: "image/bmp",
+    AVIF: "image/avif",
   };
 
-  // ✅ PROCESS FILE
+  // cleanup preview memory
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    const handleClick = () => {
+      setOpenFrom(false);
+      setOpenTo(false);
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, []);
+
   const processFile = (selected) => {
     if (!selected.type.startsWith("image/")) {
       alert("Please upload a valid image!");
@@ -55,46 +64,44 @@ export default function ImageConverter() {
     setFile(null);
     setConverted(null);
 
-    const reader = new FileReader();
+    const objectUrl = URL.createObjectURL(selected);
+    const img = new Image();
 
-    reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
+    img.onload = () => {
+      const detected = selected.type.split("/")[1].toUpperCase();
+      const normalized = detected === "JPEG" ? "JPG" : detected;
 
-      img.onload = () => {
-        const detected = selected.type.split("/")[1].toUpperCase();
-        const normalized = detected === "JPEG" ? "JPG" : detected;
+      setPreview(objectUrl);
+      setFile(selected);
 
-        setPreview(reader.result);
-        setFile(selected);
+      setFileData({
+        name: selected.name,
+        size: (selected.size / 1024).toFixed(1) + " KB",
+        width: img.width,
+        height: img.height,
+        format: normalized,
+      });
 
-        setFileInfo({
-          name: selected.name,
-          size: (selected.size / 1024).toFixed(1) + " KB",
-          width: img.width,
-          height: img.height,
-          format: normalized,
-        });
+      setFromFormat(normalized);
 
-        setFromFormat(normalized);
-      };
+      const defaultTarget =
+        formats.find((f) => f !== normalized) || "PNG";
+      setToFormat(defaultTarget);
     };
 
-    reader.readAsDataURL(selected);
+    img.src = objectUrl;
   };
 
   const handleRemove = () => {
     setPreview(null);
-    setImage(null);
-    setResized(null);
-    setCompressionRatio(0);
+    setFile(null);
+    setConverted(null);
+    setFileData(null);
   };
-
 
   const handleChange = (e) => {
     const selected = e.target.files[0];
     if (!selected) return;
-
     processFile(selected);
     e.target.value = "";
   };
@@ -111,10 +118,8 @@ export default function ImageConverter() {
   const handleDrop = (e) => {
     e.preventDefault();
     setDragActive(false);
-
     const dropped = e.dataTransfer.files[0];
     if (!dropped) return;
-
     processFile(dropped);
   };
 
@@ -158,119 +163,88 @@ export default function ImageConverter() {
     setPreview(null);
     setFile(null);
     setConverted(null);
-
-    setFileInfo({
-      name: "",
-      size: "",
-      width: 0,
-      height: 0,
-      format: "",
-    });
+    setFileData(null);
 
     setFromFormat("JPG");
     setToFormat("PNG");
     setQuality(0.9);
   };
 
-  const filterFormats = (list, search) =>
-    list.filter((f) => f.toLowerCase().includes(search.toLowerCase()));
-
   return (
     <>
       <div className="container space-y-10">
 
-        {/* 🔽 DROPDOWNS */}
-        <div className="flex justify-center items-center gap-4">
+        {/* ✅ CLEAN DROPDOWN SELECTOR */}
+        <div className="flex items-center justify-center gap-4">
 
           {/* FROM */}
-          <div className="relative">
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => {
-                setOpenFrom(!openFrom);
-                setOpenTo(false);
-              }}
-              className="px-5 py-2 border rounded-full bg-white shadow"
+              onClick={() => setOpenFrom(!openFrom)}
+              className="px-5 py-2 rounded-full border bg-white shadow"
             >
               {fromFormat} ▼
             </button>
 
             {openFrom && (
-              <div className="absolute mt-2 w-60 bg-white border rounded-xl shadow-lg p-4 z-10">
-                <input
-                  placeholder="Search Format"
-                  value={searchFrom}
-                  onChange={(e) => setSearchFrom(e.target.value)}
-                  className="w-full border px-3 py-2 rounded mb-3"
-                />
-
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                  {filterFormats(formats, searchFrom).map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => {
-                        setFromFormat(f);
-                        setOpenFrom(false);
-                      }}
-                      className={`border rounded-full px-2 py-1 text-sm ${fromFormat === f
-                        ? "border-blue-600 text-blue-600"
-                        : ""
-                        }`}
-                    >
-                      {f}
-                    </button>
-                  ))}
-                </div>
+              <div className="absolute mt-2 bg-white border rounded-xl shadow-lg p-3 flex flex-wrap gap-2 w-64 z-10">
+                {formats.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => {
+                      setFromFormat(f);
+                      setOpenFrom(false);
+                    }}
+                    className={`px-3 py-1 rounded-full border text-sm ${
+                      fromFormat === f
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "hover:border-blue-400"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
               </div>
             )}
           </div>
 
-          <span>→</span>
+          <span className="text-xl">→</span>
 
           {/* TO */}
-          <div className="relative">
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => {
-                setOpenTo(!openTo);
-                setOpenFrom(false);
-              }}
-              className="px-5 py-2 border rounded-full bg-white shadow"
+              onClick={() => setOpenTo(!openTo)}
+              className="px-5 py-2 rounded-full border bg-white shadow"
             >
               {toFormat} ▼
             </button>
 
             {openTo && (
-              <div className="absolute mt-2 w-60 bg-white border rounded-xl shadow-lg p-4 z-10">
-                <input
-                  placeholder="Search Format"
-                  value={searchTo}
-                  onChange={(e) => setSearchTo(e.target.value)}
-                  className="w-full border px-3 py-2 rounded mb-3"
-                />
-
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                  {filterFormats(formats, searchTo).map((f) => (
+              <div className="absolute mt-2 bg-white border rounded-xl shadow-lg p-3 flex flex-wrap gap-2 w-64 z-10">
+                {formats
+                  .filter((f) => f !== fromFormat)
+                  .map((f) => (
                     <button
                       key={f}
                       onClick={() => {
                         setToFormat(f);
                         setOpenTo(false);
                       }}
-                      className={`border rounded-full px-2 py-1 text-sm ${toFormat === f
-                        ? "border-blue-600 text-blue-600"
-                        : ""
-                        }`}
+                      className={`px-3 py-1 rounded-full border text-sm ${
+                        toFormat === f
+                          ? "bg-green-600 text-white border-green-600"
+                          : "hover:border-green-400"
+                      }`}
                     >
                       {f}
                     </button>
                   ))}
-                </div>
               </div>
             )}
           </div>
-
         </div>
 
-        {/* 🎛 QUALITY */}
+        {/* QUALITY */}
         {(toFormat === "JPG" || toFormat === "WEBP") && (
           <div className="text-center">
             <p className="mb-2">Quality: {Math.round(quality * 100)}%</p>
@@ -286,11 +260,10 @@ export default function ImageConverter() {
           </div>
         )}
 
-        {/* ✅ REUSABLE UPLOADER */}
-
+        {/* UPLOADER */}
         <ImageUploader
           preview={preview}
-          fileInfo={fileInfo}
+          fileData={fileData}
           onChange={handleChange}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -298,45 +271,34 @@ export default function ImageConverter() {
           onRemove={handleRemove}
         />
 
-        {/* 🔄 CONVERT */}
+        {/* CONVERT */}
         {preview && !converted && (
-          <div className="font-bold text-sm flex justify-center">
-
-            <CustomButton
-
-              onClick={handleConvert}
-              animation="ripple"
-              btnSize="md"
-              variant="success"
-            >
+          <div className="flex justify-center">
+            <CustomButton onClick={handleConvert}>
               Convert Now
             </CustomButton>
           </div>
         )}
 
-        {/* 📥 RESULT */}
+        {/* RESULT */}
         {converted && (
           <div className="text-center space-y-6">
             <img src={converted} className="mx-auto max-h-60 rounded-2xl" />
-            <div className="flex justify-center items-center gap-3">
 
-            <CustomButton
+            <div className="flex justify-center gap-3">
+              <CustomButton onClick={handleReset}>
+                Convert Another Image
+              </CustomButton>
 
-              onClick={handleReset}
-              animation="ripple"
-              btnSize="md"
-            >
-              Convert Another Image
-            </CustomButton>
-
-            <CustomButton variant="download" onClick={handleDownload} animation="bounce" />
-
-
+              <CustomButton
+                variant="download"
+                onClick={handleDownload}
+              />
             </div>
           </div>
         )}
       </div>
-      {/* 🔹 CONTENT SECTION */}
+
       <div className="contentWrapper">
         <About />
         <HowToUse />

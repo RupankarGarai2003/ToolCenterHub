@@ -10,7 +10,21 @@ export default function Header() {
   const [active, setActive] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef(null);
+  const timeoutRef = useRef(null);
 
+  /* HOVER HANDLERS (DESKTOP) */
+  const handleMouseEnter = (menu) => {
+    clearTimeout(timeoutRef.current);
+    setActive(menu);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setActive(null);
+    }, 150);
+  };
+
+  /* CLICK HANDLER (MOBILE) */
   const toggle = (menu) => {
     setActive(active === menu ? null : menu);
   };
@@ -51,11 +65,13 @@ export default function Header() {
         {/* DESKTOP NAV */}
         <nav className="nav desktop-nav">
           {menus.map((m) => (
-            <div key={m.key} className="nav-item">
-              <button
-                onClick={() => toggle(m.key)}
-                className={active === m.key ? "active" : ""}
-              >
+            <div
+              key={m.key}
+              className="nav-item"
+              onMouseEnter={() => handleMouseEnter(m.key)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button className={active === m.key ? "active" : ""}>
                 {m.name}
                 <ChevronDown size={14} />
                 <span className="underline"></span>
@@ -64,11 +80,14 @@ export default function Header() {
               {active === m.key && (
                 <div className="dropdown-grid">
                   {getTools(m.key).slice(0, 6).map((tool) => (
-                    <Link key={tool.slug} href={`/tools/${tool.slug}`} className="dropdown-card">
+                    <Link
+                      key={tool.slug}
+                      href={`/tools/${tool.slug}`}
+                      className="dropdown-card"
+                    >
                       <div className="dot"></div>
                       <div>
                         <p>{tool.name}</p>
-                        {/* <span>Fast & free tool</span> */}
                       </div>
                     </Link>
                   ))}
@@ -78,11 +97,12 @@ export default function Header() {
           ))}
 
           {/* TRENDING */}
-          <div className="nav-item">
-            <button
-              onClick={() => toggle("trending")}
-              className={active === "trending" ? "active" : ""}
-            >
+          <div
+            className="nav-item"
+            onMouseEnter={() => handleMouseEnter("trending")}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className={active === "trending" ? "active" : ""}>
               🔥 Trending
               <ChevronDown size={14} />
               <span className="underline"></span>
@@ -91,11 +111,14 @@ export default function Header() {
             {active === "trending" && (
               <div className="dropdown-grid">
                 {tools.slice(0, 6).map((tool) => (
-                  <Link key={tool.slug} href={`/tools/${tool.slug}`} className="dropdown-card">
+                  <Link
+                    key={tool.slug}
+                    href={`/tools/${tool.slug}`}
+                    className="dropdown-card"
+                  >
                     <div className="dot purple"></div>
                     <div>
                       <p>{tool.name}</p>
-                      {/* <span>Popular tool</span> */}
                     </div>
                   </Link>
                 ))}
@@ -104,9 +127,12 @@ export default function Header() {
           </div>
         </nav>
 
-        {/* 3 DOT MENU */}
+        {/* 3 DOT MENU (MOBILE) */}
         <div className="menu-wrapper">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="menu-btn">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="menu-btn"
+          >
             <MoreVertical size={20} />
           </button>
 

@@ -1,86 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ImageUploader from "./ImageUploader";
-import { Download } from "lucide-react";
+import CustomButton from "../tools/CustomButton";
 
 import About from "@/components/tool-content/About";
 import HowToUse from "@/components/tool-content/HowToUse";
 import Features from "@/components/tool-content/Features";
 import Benefits from "@/components/tool-content/Benefits";
 import FAQ from "@/components/tool-content/FAQ";
-import CustomButton from "../tools/CustomButton";
 
 export default function ImageResizer() {
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
   const [resized, setResized] = useState(null);
 
+  const [fileData, setFileData] = useState(null);
+
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
   const [percent, setPercent] = useState(100);
 
+  const [unit, setUnit] = useState("px");
   const [lockRatio, setLockRatio] = useState(true);
 
-  const [format, setFormat] = useState("image/png");
-  const [quality, setQuality] = useState(0.9);
+  const [format, setFormat] = useState("image/jpeg");
+  const [quality, setQuality] = useState(0.8);
+
+  const [bgColor, setBgColor] = useState("#ffffff");
 
   const [original, setOriginal] = useState({ w: 0, h: 0 });
 
-  const [fileInfo, setFileInfo] = useState({
-    name: "",
-    size: "",
-    width: 0,
-    height: 0,
-  });
+  const [estimatedSize, setEstimatedSize] = useState(null);
 
-  // 📥 HANDLE FILE
+  // 📥 FILE UPLOAD
   const handleChange = (e) => {
     const selected = e.target.files[0];
-    if (!selected) return;
+    if (!selected || !selected.type.startsWith("image/")) return;
 
-    if (!selected.type.startsWith("image/")) {
-      alert("Upload a valid image");
-      return;
-    }
+    const url = URL.createObjectURL(selected);
+    const img = new Image();
 
-    const reader = new FileReader();
+    img.onload = () => {
+      setPreview(url);
+      setFile(selected);
+      setResized(null);
 
-    reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
+      setOriginal({ w: img.width, h: img.height });
 
-      img.onload = () => {
-        setPreview(reader.result);
-        setFile(selected);
-        setResized(null);
+      setWidth(img.width);
+      setHeight(img.height);
 
-        setOriginal({ w: img.width, h: img.height });
-
-        setWidth(img.width);
-        setHeight(img.height);
-
-        setFileInfo({
-          name: selected.name,
-          size: (selected.size / 1024).toFixed(1) + " KB",
-          width: img.width,
-          height: img.height,
-        });
-      };
+      setFileData({
+        name: selected.name,
+        size: (selected.size / 1024).toFixed(1) + " KB",
+        width: img.width,
+        height: img.height,
+      });
     };
 
-    reader.readAsDataURL(selected);
+    img.src = url;
   };
 
-  // ❌ REMOVE
+  // ❌ RESET
   const handleRemove = () => {
     setPreview(null);
     setFile(null);
     setResized(null);
+    setFileData(null);
+    setEstimatedSize(null);
   };
 
   // 🔄 WIDTH CHANGE
-  const handleWidthChange = (val) => {
+  const handleWidth = (val) => {
     setWidth(val);
     if (lockRatio) {
       const ratio = original.h / original.w;
@@ -89,7 +81,7 @@ export default function ImageResizer() {
   };
 
   // 🔄 HEIGHT CHANGE
-  const handleHeightChange = (val) => {
+  const handleHeight = (val) => {
     setHeight(val);
     if (lockRatio) {
       const ratio = original.w / original.h;
@@ -107,6 +99,40 @@ export default function ImageResizer() {
     setHeight(Math.round(h));
   };
 
+  // ✅ LIVE ESTIMATE (FIXED)
+  useEffect(() => {
+    if (!preview || !width || !height) return;
+
+    const timeout = setTimeout(() => {
+      const img = new Image();
+      img.src = preview;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const data =
+          format === "image/jpeg" || format === "image/webp"
+            ? canvas.toDataURL(format, quality)
+            : canvas.toDataURL(format);
+
+        const size = Math.round((data.length * 3) / 4 / 1024);
+
+        setEstimatedSize(size);
+      };
+    }, 200); // debounce
+
+    return () => clearTimeout(timeout);
+  }, [width, height, quality, format, bgColor, preview]);
+
   // 🔄 RESIZE
   const handleResize = () => {
     const img = new Image();
@@ -118,6 +144,10 @@ export default function ImageResizer() {
       canvas.height = height;
 
       const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, width, height);
+
       ctx.drawImage(img, 0, 0, width, height);
 
       const result =
@@ -139,155 +169,158 @@ export default function ImageResizer() {
 
   return (
     <>
-      <div className="max-w-md mx-auto space-y-10">
-
-        {/* TITLE */}
-
+      <div className="max-w-md mx-auto space-y-8">
 
         {/* UPLOADER */}
         <ImageUploader
           preview={preview}
-          fileInfo={fileInfo}
+          fileData={fileData}
           onChange={handleChange}
           onRemove={handleRemove}
         />
 
+        {/* ORIGINAL PREVIEW */}
+        {preview && !resized && (
+          <div className="text-center">
+            <p className="text-sm text-gray-500 mb-2">Original Image</p>
+            <img src={preview} className="mx-auto max-h-60 rounded-xl" />
+          </div>
+        )}
+
         {/* CONTROLS */}
         {preview && !resized && (
-          <div className="bg-white rounded-xl p-6 shadow space-y-8">
+          <div className="bg-white p-6 rounded-2xl shadow space-y-6">
 
-            {/* SIZE SECTION */}
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-semibold">
-                Set Image Dimensions
-              </h3>
-              <p className="text-sm text-gray-500">
-                Enter width and height in pixels
-              </p>
+            <h2 className="text-center font-semibold">
+              Choose new size and format
+            </h2>
 
-              <div className="flex justify-center items-end gap-4">
+            {/* DIMENSIONS */}
+            <div>
+              <p className="font-medium text-gray-700 mb-2">Dimensions</p>
 
-                <div>
-                  <label className="text-sm text-gray-600">Width (px)</label>
-                  <input
-                    type="number"
-                    value={width}
-                    onChange={(e) => handleWidthChange(Number(e.target.value))}
-                    className="border px-3 py-2 rounded w-28 mt-1"
-                  />
-                </div>
+              <div className="grid grid-cols-4 gap-3 items-end">
+                <input
+                  type="number"
+                  value={width}
+                  onChange={(e) => handleWidth(Number(e.target.value))}
+                  className="border p-2 rounded"
+                />
 
-                <button
-                  onClick={() => setLockRatio(!lockRatio)}
-                  title="Lock aspect ratio"
-                  className="text-2xl mb-2"
-                >
+                <button onClick={() => setLockRatio(!lockRatio)}>
                   {lockRatio ? "🔒" : "🔓"}
                 </button>
 
-                <div>
-                  <label className="text-sm text-gray-600">Height (px)</label>
-                  <input
-                    type="number"
-                    value={height}
-                    onChange={(e) => handleHeightChange(Number(e.target.value))}
-                    className="border px-3 py-2 rounded w-28 mt-1"
-                  />
-                </div>
+                <input
+                  type="number"
+                  value={height}
+                  onChange={(e) => handleHeight(Number(e.target.value))}
+                  className="border p-2 rounded"
+                />
 
+                <select
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="border p-2 rounded"
+                >
+                  <option value="px">Pixel</option>
+                  <option value="percent">Percent</option>
+                </select>
               </div>
-
-              <p className="text-xs text-gray-400">
-                🔒 Keeps width & height proportional
-              </p>
             </div>
 
-            {/* PERCENT */}
-            <div className="text-center space-y-2">
-              <h3 className="font-medium">Resize by Percentage</h3>
-
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={percent}
-                onChange={(e) => handlePercent(Number(e.target.value))}
-                className="w-64"
-              />
-
-              <p className="text-sm">{percent}%</p>
-            </div>
+            {/* SLIDER */}
+            {unit === "percent" && (
+              <div>
+                <p className="text-sm text-gray-500">
+                  Resize: {percent}%
+                </p>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={percent}
+                  onChange={(e) => handlePercent(Number(e.target.value))}
+                  className="w-full accent-blue-600"
+                />
+              </div>
+            )}
 
             {/* FORMAT */}
-            <div className="text-center space-y-2">
-              <h3 className="font-medium">Output Format</h3>
+            <div>
+              <p className="font-medium text-gray-700 mb-2">
+                Format & Quality
+              </p>
 
-              <div className="flex justify-center gap-4">
+              <div className="grid grid-cols-3 gap-4">
+
                 <select
                   onChange={(e) => setFormat(e.target.value)}
-                  className="border px-3 py-2 rounded"
+                  className="border p-2 rounded"
                 >
-                  <option value="image/png">PNG</option>
                   <option value="image/jpeg">JPG</option>
+                  <option value="image/png">PNG</option>
                   <option value="image/webp">WEBP</option>
                 </select>
 
-                {(format === "image/jpeg" || format === "image/webp") && (
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.05"
-                    value={quality}
-                    onChange={(e) => setQuality(Number(e.target.value))}
-                  />
-                )}
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  value={quality}
+                  onChange={(e) => setQuality(Number(e.target.value))}
+                  className="accent-blue-600"
+                />
+
+                <input
+                  type="color"
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                />
+
               </div>
             </div>
 
-            {/* BUTTON */}
+            {/* SIZE INFO */}
+            {fileData && (
+              <div className="text-center text-sm text-gray-500">
+                Original: {fileData.size} → Estimated: {estimatedSize ?? "-"} KB
+              </div>
+            )}
+
             <div className="flex justify-center">
-
-              <CustomButton
-
-                onClick={handleResize}
-                animation="ripple"
-                btnSize="md"
-                variant="success"
-              >
+              <CustomButton onClick={handleResize}>
                 Resize Image
               </CustomButton>
             </div>
-
           </div>
         )}
 
         {/* RESULT */}
         {resized && (
-          <div className="text-center space-y-6">
-            <img src={resized} className="mx-auto max-h-60 rounded-2xl" />
+          <div className="space-y-6 text-center">
 
-            <div className="flex justify-center gap-6">
-             
-              <CustomButton
+            <p className="text-sm text-gray-500">Before vs After</p>
 
-                onClick={handleRemove}
-                animation="ripple"
-                btnSize="md"
-                variant="secondary"
-              >
+            <div className="flex justify-center gap-4">
+              <img src={preview} className="w-32 h-32 object-cover rounded" />
+              <img src={resized} className="w-32 h-32 object-cover rounded border-2 border-blue-500" />
+            </div>
+
+            <img src={resized} className="mx-auto max-h-72 rounded-2xl" />
+
+            <div className="flex justify-center gap-4">
+              <CustomButton onClick={handleRemove}>
                 Reset
               </CustomButton>
 
-              <CustomButton variant="download" onClick={handleDownload} animation="bounce" />
-
-
+              <CustomButton variant="download" onClick={handleDownload} />
             </div>
           </div>
         )}
+
       </div>
 
-      {/* 🔹 CONTENT SECTION */}
       <div className="contentWrapper">
         <About />
         <HowToUse />
