@@ -61,12 +61,10 @@ export default function QRGenerator() {
 
   return (
     <>
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+    <div className=" flex items-center justify-center p-1 bg-gray-50">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 space-y-6">
 
-        <h1 className="text-2xl font-semibold text-center">
-          QR Code Generator
-        </h1>
+       
 
         {/* INPUT */}
         <textarea

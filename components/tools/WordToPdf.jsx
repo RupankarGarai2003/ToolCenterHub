@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import mammoth from "mammoth";
-import html2pdf from "html2pdf.js";
 import ImageUploader from "./ImageUploader";
 
 import About from "@/components/tool-content/About";
@@ -17,108 +16,148 @@ export default function WordToPDF() {
   const [loading, setLoading] = useState(false);
 
   // 📥 PROCESS FILE
-  const processFile = async (file) => {
-    if (!file.name.endsWith(".docx")) {
+  const processFile = async (selectedFile) => {
+    if (!selectedFile.name.endsWith(".docx")) {
       alert("Upload .docx file only");
       return;
     }
 
-    setFile(file);
+    setFile(selectedFile);
     setLoading(true);
+    setHtmlContent("");
 
-    const arrayBuffer = await file.arrayBuffer();
-
-    const result = await mammoth.convertToHtml({
-      arrayBuffer,
-    });
-
-    setHtmlContent(result.value);
-    setLoading(false);
+    try {
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      setHtmlContent(result.value);
+    } catch (error) {
+      console.error("Mammoth conversion error:", error);
+      alert("Failed to read the Word document. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 📂 INPUT
   const handleChange = (e) => {
     const f = e.target.files?.[0];
     if (f) processFile(f);
   };
 
-  // 🔥 DRAG DROP
   const handleDrop = (e) => {
     e.preventDefault();
-    const f = e.dataTransfer.files[0];
+    const f = e.dataTransfer.files?.[0];
     if (f) processFile(f);
   };
 
   const handleDragOver = (e) => e.preventDefault();
 
-  // ❌ REMOVE
   const handleRemove = () => {
     setFile(null);
     setHtmlContent("");
   };
 
-  // 📄 DOWNLOAD
-  const handleDownload = () => {
-    const element = document.createElement("div");
-    element.innerHTML = htmlContent;
+  // 📄 DOWNLOAD PDF
+  const handleDownload = async () => {
+    if (!htmlContent) return;
 
-    html2pdf()
-      .from(element)
-      .set({
-        margin: 10,
-        filename: "converted.pdf",
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4" },
-      })
-      .save();
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+
+      // ✅ KEY FIX: Create a temp container appended directly to document.body.
+      // html2canvas CANNOT render elements that are:
+      //   - positioned at left: -99999px (too far offscreen)
+      //   - display: none
+      //   - visibility: hidden
+      // Using opacity: 0 + z-index: -9999 keeps it invisible to the user
+      // while still being fully renderable by html2canvas.
+      const container = document.createElement("div");
+      container.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 794px;
+        background: #ffffff;
+        color: #000000;
+        font-family: serif;
+        font-size: 12pt;
+        line-height: 1.6;
+        padding: 40px;
+        z-index: -9999;
+        pointer-events: none;
+        opacity: 0;
+      `;
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
+
+      const filename = file
+        ? file.name.replace(/\.docx$/i, ".pdf")
+        : "converted.pdf";
+
+      await html2pdf()
+        .from(container)
+        .set({
+          margin: [10, 10, 10, 10],
+          filename,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: "#ffffff",
+            windowWidth: 794, // matches container width for correct layout
+          },
+          jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait",
+          },
+        })
+        .save();
+
+      // ✅ Always clean up the temp element
+      document.body.removeChild(container);
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      alert("PDF generation failed. Please try again.");
+    }
   };
 
   return (
     <>
       {/* 🔹 TOOL SECTION */}
       <div className="container">
-       
 
+        <ImageUploader
+          preview={null}
+          type="document"
+          fileData={
+            file
+              ? {
+                  name: file.name,
+                  size: `${(file.size / 1024).toFixed(2)} KB`,
+                }
+              : null
+          }
+          onChange={handleChange}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onRemove={handleRemove}
+        />
 
-          {/* ✅ REUSED UPLOADER */}
-          <ImageUploader
-            preview={null}
-            type="document"
-            fileData={
-              file
-                ? {
-                    name: file.name,
-                    size: `${(file.size / 1024).toFixed(2)} KB`,
-                  }
-                : null
-            }
-            onChange={handleChange}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onRemove={handleRemove}
-          />
+        {loading && (
+          <p className="text-center text-gray-500 mt-2">
+            Converting, please wait...
+          </p>
+        )}
 
-          {/* Loading */}
-          {loading && (
-            <p className="text-center text-gray-500">
-              Converting...
-            </p>
-          )}
-
-          {/* Download */}
-          {htmlContent && (
-            <button
-              onClick={handleDownload}
-              className="w-full bg-green-600 text-white py-2 rounded-lg"
-            >
-              Download PDF
-            </button>
-          )}
-
-          {/* <p className="text-xs text-center text-gray-500">
-            🔒 Your files remain private and processed in browser.
-          </p> */}
-        
+        {htmlContent && !loading && (
+          <button
+            onClick={handleDownload}
+            className="w-full bg-green-600 hover:bg-green-700 transition-colors text-white py-2 rounded-lg mt-4"
+          >
+            Download PDF
+          </button>
+        )}
       </div>
 
       {/* 🔹 CONTENT SECTION */}
