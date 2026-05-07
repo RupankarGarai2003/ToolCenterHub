@@ -1,173 +1,259 @@
 "use client";
 
-import { useState, useRef } from "react";
-import mammoth from "mammoth";
+import { useState } from "react";
+
+import { renderAsync } from "docx-preview";
+
 import ImageUploader from "./ImageUploader";
 
-import About from "@/components/tool-content/About";
-import HowToUse from "@/components/tool-content/HowToUse";
-import Features from "@/components/tool-content/Features";
-import Benefits from "@/components/tool-content/Benefits";
-import FAQ from "@/components/tool-content/FAQ";
+import {
+  Download,
+  Loader2,
+  FileText,
+  RotateCcw,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function WordToPDF() {
-  const [file, setFile] = useState(null);
-  const [htmlContent, setHtmlContent] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [file, setFile] =
+    useState(null);
 
-  // 📥 PROCESS FILE
-  const processFile = async (selectedFile) => {
-    if (!selectedFile.name.endsWith(".docx")) {
-      alert("Upload .docx file only");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [ready, setReady] =
+    useState(false);
+
+  const [success, setSuccess] =
+    useState(false);
+
+  const [previewHtml, setPreviewHtml] =
+    useState("");
+
+  const processFile = async (
+    selectedFile
+  ) => {
+    if (!selectedFile) return;
+
+    if (
+      !selectedFile.name.endsWith(
+        ".docx"
+      )
+    ) {
+      alert(
+        "Upload DOCX only"
+      );
       return;
     }
 
-    setFile(selectedFile);
-    setLoading(true);
-    setHtmlContent("");
-
     try {
-      const arrayBuffer = await selectedFile.arrayBuffer();
-      const result = await mammoth.convertToHtml({ arrayBuffer });
-      setHtmlContent(result.value);
-    } catch (error) {
-      console.error("Mammoth conversion error:", error);
-      alert("Failed to read the Word document. Please try again.");
+      setLoading(true);
+
+      setFile(selectedFile);
+
+      const arrayBuffer =
+        await selectedFile.arrayBuffer();
+
+      const container =
+        document.createElement(
+          "div"
+        );
+
+      await renderAsync(
+        arrayBuffer,
+        container
+      );
+
+      setPreviewHtml(
+        container.innerHTML
+      );
+
+      setReady(true);
+    } catch (err) {
+      console.error(err);
+
+      alert(
+        "Failed to process DOCX"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleChange = (e) => {
-    const f = e.target.files?.[0];
+    const f =
+      e.target.files?.[0];
+
     if (f) processFile(f);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const f = e.dataTransfer.files?.[0];
+
+    const f =
+      e.dataTransfer.files?.[0];
+
     if (f) processFile(f);
   };
 
-  const handleDragOver = (e) => e.preventDefault();
+  const handleDragOver = (e) =>
+    e.preventDefault();
 
   const handleRemove = () => {
     setFile(null);
-    setHtmlContent("");
+
+    setReady(false);
+
+    setSuccess(false);
+
+    setPreviewHtml("");
   };
 
-  // 📄 DOWNLOAD PDF
+  // BEST PDF METHOD
   const handleDownload = async () => {
-    if (!htmlContent) return;
-
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
+      const printWindow =
+        window.open(
+          "",
+          "_blank"
+        );
 
-      // ✅ KEY FIX: Create a temp container appended directly to document.body.
-      // html2canvas CANNOT render elements that are:
-      //   - positioned at left: -99999px (too far offscreen)
-      //   - display: none
-      //   - visibility: hidden
-      // Using opacity: 0 + z-index: -9999 keeps it invisible to the user
-      // while still being fully renderable by html2canvas.
-      const container = document.createElement("div");
-      container.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 794px;
-        background: #ffffff;
-        color: #000000;
-        font-family: serif;
-        font-size: 12pt;
-        line-height: 1.6;
-        padding: 40px;
-        z-index: -9999;
-        pointer-events: none;
-        opacity: 0;
-      `;
-      container.innerHTML = htmlContent;
-      document.body.appendChild(container);
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${file.name}</title>
 
-      const filename = file
-        ? file.name.replace(/\.docx$/i, ".pdf")
-        : "converted.pdf";
+            <style>
+              body{
+                margin:0;
+                padding:20px;
+                background:white;
+              }
 
-      await html2pdf()
-        .from(container)
-        .set({
-          margin: [10, 10, 10, 10],
-          filename,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: "#ffffff",
-            windowWidth: 794, // matches container width for correct layout
-          },
-          jsPDF: {
-            unit: "mm",
-            format: "a4",
-            orientation: "portrait",
-          },
-        })
-        .save();
+              img{
+                max-width:100%;
+              }
 
-      // ✅ Always clean up the temp element
-      document.body.removeChild(container);
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      alert("PDF generation failed. Please try again.");
+              *{
+                box-sizing:border-box;
+              }
+            </style>
+          </head>
+
+          <body>
+            ${previewHtml}
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+
+        setSuccess(true);
+      }, 500);
+    } catch (err) {
+      console.error(err);
+
+      alert(
+        "Failed to generate PDF"
+      );
     }
   };
 
   return (
-    <>
-      {/* 🔹 TOOL SECTION */}
-      <div className="container">
+    <div className="max-w-md mx-auto space-y-6">
 
-        <ImageUploader
-          preview={null}
-          type="document"
-          fileData={
-            file
-              ? {
-                  name: file.name,
-                  size: `${(file.size / 1024).toFixed(2)} KB`,
-                }
-              : null
-          }
-          onChange={handleChange}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onRemove={handleRemove}
-        />
+      <ImageUploader
+        preview={null}
+        type="document"
+        fileData={
+          file
+            ? {
+                name: file.name,
+                size:
+                  (
+                    file.size /
+                    1024
+                  ).toFixed(1) +
+                  " KB",
+              }
+            : null
+        }
+        onChange={handleChange}
+        onDrop={handleDrop}
+        onDragOver={
+          handleDragOver
+        }
+        onRemove={
+          handleRemove
+        }
+      />
 
-        {loading && (
-          <p className="text-center text-gray-500 mt-2">
-            Converting, please wait...
+      {loading && (
+        <div className="bg-white rounded-3xl p-8 text-center shadow">
+
+          <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+
+          <p className="font-semibold">
+            Processing DOCX...
           </p>
-        )}
+        </div>
+      )}
 
-        {htmlContent && !loading && (
-          <button
-            onClick={handleDownload}
-            className="w-full bg-green-600 hover:bg-green-700 transition-colors text-white py-2 rounded-lg mt-4"
-          >
-            Download PDF
-          </button>
-        )}
-      </div>
+      {ready && !loading && (
+        <div className="bg-white rounded-3xl p-6 shadow space-y-5">
 
-      {/* 🔹 CONTENT SECTION */}
-      <div className="contentWrapper">
-        <About />
-        <HowToUse />
-        <Features />
-        <Benefits />
-        <FAQ />
-      </div>
-    </>
+          <div className="text-center">
+
+            <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8" />
+            </div>
+
+            <h2 className="text-2xl font-black">
+              Ready to Export
+            </h2>
+
+            <p className="text-sm text-gray-500 mt-1">
+              Preserves original
+              Word layout
+            </p>
+          </div>
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl py-3 text-green-600 font-semibold flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              PDF Generated
+            </div>
+          )}
+
+          <div className="flex gap-4">
+
+            <button
+              onClick={
+                handleRemove
+              }
+              className="w-full h-12 rounded-2xl border font-semibold flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </button>
+
+            <button
+              onClick={
+                handleDownload
+              }
+              className="w-full h-12 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export PDF
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
