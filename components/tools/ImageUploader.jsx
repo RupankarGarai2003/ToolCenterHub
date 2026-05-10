@@ -1,6 +1,6 @@
 "use client";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
-import styles from "../styles/ImageUploader.module.css";
+import styles from "../Styles/ImageUploader.module.css";
 
 
 export default function ImageUploader({
