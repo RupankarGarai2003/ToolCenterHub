@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { Lock, Upload, Download, ShieldCheck } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 export default function PDFProtect() {
   const [file, setFile] = useState(null);
@@ -72,6 +78,7 @@ export default function PDFProtect() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-[#f5f7fb] flex items-center justify-center p-5">
 
       <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-xl p-8">
@@ -155,5 +162,13 @@ export default function PDFProtect() {
         </button>
       </div>
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

@@ -13,6 +13,12 @@ import {
   RotateCcw,
   CheckCircle2,
 } from "lucide-react";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 export default function WordToPDF() {
   const [file, setFile] =
@@ -269,6 +275,7 @@ export default function WordToPDF() {
     };
 
   return (
+    <>
     <div className="max-w-md mx-auto space-y-6">
 
       {/* DOCX GLOBAL CSS */}
@@ -402,5 +409,13 @@ export default function WordToPDF() {
       )}
 
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

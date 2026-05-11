@@ -35,7 +35,7 @@ export async function generateMetadata({ params }) {
   const { tool, limit } = parseSlug(slug);
   const seo = getSeoData(tool, limit);
 
-  const baseUrl = "http://toolcenterhub.com/"; // 🔥 change this
+  const baseUrl = "http://toolscenterhub.com/"; // 🔥 change this
   const url = `${baseUrl}/tools/${slug}`;
 
   return {

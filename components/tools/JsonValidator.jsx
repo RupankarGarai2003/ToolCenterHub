@@ -10,6 +10,12 @@ import {
   Clipboard,
   Check,
 } from "lucide-react";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 export default function JSONValidator() {
   const [input, setInput] = useState("");
@@ -53,6 +59,7 @@ export default function JSONValidator() {
   };
 
   return (
+    <>
     <div className="bg-white py-4 px-3">
       <div className="max-w-4xl mx-auto">
 
@@ -227,5 +234,13 @@ export default function JSONValidator() {
         </div>
       </div>
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

@@ -4,6 +4,12 @@ import { useState } from "react";
 
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+
 import {
   Upload,
   Download,
@@ -31,7 +37,7 @@ export default function PdfToJpg() {
     if (
       selectedFile &&
       selectedFile.type ===
-        "application/pdf"
+      "application/pdf"
     ) {
       setFile(selectedFile);
 
@@ -116,7 +122,7 @@ export default function PdfToJpg() {
         setProgress(
           Math.round(
             (pageNum / totalPages) *
-              100
+            100
           )
         );
       }
@@ -167,215 +173,277 @@ export default function PdfToJpg() {
   };
 
   return (
-    <div className="w-full py-4">
+    <>
+      <div className="container">
 
-      <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
 
-        {/* UPLOAD */}
-        {!file && (
-          <label
-            className="
-              border-2 border-dashed
-              border-gray-300
-              rounded-3xl
-              p-10
-              flex flex-col
-              items-center
-              justify-center
-              cursor-pointer
-              hover:bg-gray-50
-              transition-all
-            "
-          >
+          {/* UPLOAD */}
+          {!file && (
+            <label
+              className="
+                border-2 border-dashed
+                border-gray-300
+                rounded-3xl
+                p-10
+                flex flex-col
+                items-center
+                justify-center
+                cursor-pointer
+                hover:bg-gray-50
+                transition-all
+              "
+            >
 
-            <Upload className="w-12 h-12 text-blue-500 mb-4" />
+              <Upload className="w-12 h-12 text-blue-500 mb-4" />
 
-            <p className="font-semibold text-lg">
-              Upload PDF
-            </p>
+              <p className="font-semibold text-lg">
+                Upload PDF
+              </p>
 
-            <p className="text-sm text-gray-500 mt-2">
-              Click to browse your file
-            </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Click to browse your file
+              </p>
 
-            <input
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={(e) =>
-                handleFile(
-                  e.target.files[0]
-                )
-              }
-            />
-          </label>
-        )}
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) =>
+                  handleFile(
+                    e.target.files[0]
+                  )
+                }
+              />
+            </label>
+          )}
 
-        {/* FILE INFO */}
-        {file &&
-          images.length === 0 && (
-            <div className="space-y-5">
+          {/* FILE INFO */}
+          {file &&
+            images.length === 0 && (
+              <div className="space-y-5">
 
+                <div
+                  className="
+                    bg-gray-50
+                    border border-green-200
+                    rounded-2xl
+                    p-4
+                  "
+                >
+
+                  <p className="font-semibold">
+                    {file.name}
+                  </p>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    PDF Ready
+                  </p>
+                </div>
+
+                {/* PROGRESS */}
+                {loading && (
+                  <div>
+
+                    <div className="h-3 bg-green-200 rounded-full overflow-hidden">
+
+                      <div
+                        className="
+                          h-full
+                          bg-green-500
+                          transition-all
+                        "
+                        style={{
+                          width:
+                            progress + "%",
+                        }}
+                      />
+                    </div>
+
+                    <p className="text-center text-sm mt-2 text-blue-600">
+                      {progress}% Processing...
+                    </p>
+                  </div>
+                )}
+
+                {/* BUTTON */}
+                <button
+                  onClick={
+                    convertToImages
+                  }
+                  disabled={loading}
+                  className="
+                    w-full
+                    bg-blue-600
+                    hover:bg-blue-700
+                    text-white
+                    py-3
+                    rounded-2xl
+                    font-semibold
+                    flex items-center
+                    justify-center
+                    gap-2
+                    transition-all
+                  "
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Converting...
+                    </>
+                  ) : (
+                    "Convert to JPG"
+                  )}
+                </button>
+              </div>
+            )}
+
+          {/* RESULTS */}
+          {images.length > 0 && (
+            <div className="space-y-6">
+
+              {/* SMALL PREVIEW FIELD */}
               <div
                 className="
+                  h-[300px]
+                  overflow-y-auto
+                  rounded-3xl
+                  border
+                  border-gray-200
                   bg-gray-50
-                  border border-gray-200
-                  rounded-2xl
                   p-4
                 "
               >
 
-                <p className="font-semibold">
-                  {file.name}
-                </p>
+                {/* GRID */}
+                <div className="grid grid-cols-3 gap-4">
 
-                <p className="text-sm text-gray-500 mt-1">
-                  PDF Ready
-                </p>
+                  {images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="
+                        bg-white
+                        rounded-2xl
+                        border border-gray-200
+                        overflow-hidden
+                        shadow-sm
+                        flex
+                        flex-col
+                        h-[220px]
+                      "
+                    >
+
+                      {/* PREVIEW */}
+                      <div
+                        className="
+                          flex-1
+                          bg-gray-100
+                          flex
+                          items-center
+                          justify-center
+                          p-2
+                          overflow-hidden
+                        "
+                      >
+
+                        <img
+                          src={img.url}
+                          alt={"page-" + index}
+                          className="
+                            max-w-full
+                            max-h-full
+                            object-contain
+                          "
+                        />
+                      </div>
+
+                      {/* DOWNLOAD */}
+                      <a
+                        href={img.url}
+                        download={img.name}
+                        className="
+                          flex
+                          items-center
+                          justify-center
+                          gap-2
+                          py-3
+                          text-blue-600
+                          hover:bg-blue-50
+                          transition-all
+                          border-t
+                          text-sm
+                          font-medium
+                        "
+                      >
+                        <Download className="w-4 h-4" />
+
+                        Download
+                      </a>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* PROGRESS */}
-              {loading && (
-                <div>
+              {/* BUTTONS */}
+              <div className="grid sm:grid-cols-2 gap-3">
 
-                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-
-                    <div
-                      className="
-                        h-full
-                        bg-blue-500
-                        transition-all
-                      "
-                      style={{
-                        width:
-                          progress + "%",
-                      }}
-                    />
-                  </div>
-
-                  <p className="text-center text-sm mt-2 text-gray-600">
-                    {progress}% Processing...
-                  </p>
-                </div>
-              )}
-
-              {/* BUTTON */}
-              <button
-                onClick={
-                  convertToImages
-                }
-                disabled={loading}
-                className="
-                  w-full
-                  bg-blue-600
-                  hover:bg-blue-700
-                  text-white
-                  py-3
-                  rounded-2xl
-                  font-semibold
-                  flex items-center
-                  justify-center
-                  gap-2
-                  transition-all
-                "
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Converting...
-                  </>
-                ) : (
-                  "Convert to JPG"
-                )}
-              </button>
-            </div>
-          )}
-
-        {/* RESULTS */}
-        {images.length > 0 && (
-          <div className="space-y-6">
-
-            {/* IMAGE GRID */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-
-              {images.map((img, index) => (
-                <div
-                  key={index}
+                <button
+                  onClick={downloadAll}
                   className="
-                    border border-gray-200
-                    rounded-2xl
-                    overflow-hidden
-                    bg-white
-                  "
-                >
-
-                  <img
-                    src={img.url}
-                    alt={"page-" + index}
-                    className="
-                      w-full
-                      h-52
-                      object-cover
-                    "
-                  />
-
-                  <a
-                    href={img.url}
-                    download={img.name}
-                    className="
-                      flex
-                      items-center
-                      justify-center
-                      gap-2
-                      py-3
-                      text-blue-600
-                      hover:bg-blue-50
-                      transition-all
-                    "
-                  >
-                    <Download className="w-4 h-4" />
-                    Download
-                  </a>
-                </div>
-              ))}
-            </div>
-
-            {/* BUTTONS */}
-            <div className="grid md:grid-cols-2 gap-4">
-
-              <button
-                onClick={downloadAll}
-                className="
                   bg-green-600
                   hover:bg-green-700
                   text-white
-                  py-3
-                  rounded-2xl
-                  font-semibold
+                  py-2.5
+                  rounded-xl
+                  font-medium
+                  text-sm
                   transition-all
-                "
-              >
-                Download All
-              </button>
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                  "
+                >
+                  <Download className="w-4 h-4" />
 
-              <button
-                onClick={reset}
-                className="
+                  Download All
+                </button>
+
+                <button
+                  onClick={reset}
+                  className="
                   border border-gray-300
-                  py-3
-                  rounded-2xl
-                  font-semibold
+                  py-2.5
+                  rounded-xl
+                  font-medium
+                  text-sm
                   hover:bg-gray-50
                   transition-all
-                "
-              >
-                <RotateCcw className="inline w-4 h-4 mr-2" />
-                Reset
-              </button>
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                   "
+                >
+                  <RotateCcw className="w-4 h-4" />
+
+                  Reset
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+      {/* TOOL CONTENT */}
+      <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+
+
+    </>
   );
 }

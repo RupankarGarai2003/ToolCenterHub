@@ -19,6 +19,12 @@ import {
 } from "lucide-react";
 
 import ImageUploader from "./ImageUploader";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 /* HELPERS */
 const formatBytes = (bytes) => {
@@ -265,6 +271,7 @@ export default function PDFMerger() {
   };
 
   return (
+    <>
     <div className="max-w-md mx-auto space-y-6 py-8">
 
       {/* UPLOADER */}
@@ -555,5 +562,13 @@ export default function PDFMerger() {
         Your files remain private
       </p>
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

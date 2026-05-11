@@ -8,6 +8,14 @@ import {
   Download,
 } from "lucide-react";
 
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
+
+
 export default function Base64Decoder() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -70,6 +78,7 @@ export default function Base64Decoder() {
   };
 
   return (
+    <>
     <div className="bg-white py-8 px-4">
       <div className="max-w-4xl mx-auto border border-gray-200 rounded-2xl p-5 md:p-6 shadow-sm">
         {/* Input */}
@@ -151,5 +160,13 @@ export default function Base64Decoder() {
         </div>
       </div>
     </div>
+          <div className="contentWrapper">
+            <About />
+            <HowToUse />
+            <Features />
+            <Benefits />
+            <FAQ />
+          </div>
+        </>
   );
 }

@@ -2,7 +2,6 @@
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import styles from "../Styles/ImageUploader.module.css";
 
-
 export default function ImageUploader({
   preview,
   fileData,
@@ -28,7 +27,6 @@ export default function ImageUploader({
 
           <label className={styles.label}>
             <div className={styles.content}>
-              
               <div className={styles.iconWrapper}>
                 <Upload className={styles.icon} />
                 <div className={styles.iconGlow}></div>
@@ -45,7 +43,6 @@ export default function ImageUploader({
                     ? "Supports JPG, PNG, WEBP"
                     : "Supports PDF, DOC, DOCX"}
                 </p>
-                
               </div>
             </div>
 
@@ -64,7 +61,6 @@ export default function ImageUploader({
           </button>
 
           <div className={styles.previewContent}>
-            
             {/* Preview */}
             <div className={styles.imageWrapper}>
               {isImage && preview ? (
@@ -114,10 +110,18 @@ export default function ImageUploader({
                 )}
               </div>
             </div>
-
           </div>
         </div>
       )}
+
+
+      {/* Security Note */}
+      <div className="mt-4 bg-blue-50 px-4 py-2 rounded-lg text-center">
+        <p className="text-xs text-green-700">
+          🔒 End-to-end encryption keeps your files fully secure.
+        </p>
+      </div>
+
     </div>
   );
 }

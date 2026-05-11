@@ -14,6 +14,12 @@ import {
   Languages,
 } from "lucide-react";
 
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+
 export default function WordCounter() {
   const [text, setText] = useState("");
   const [copied, setCopied] = useState(false);
@@ -184,8 +190,6 @@ export default function WordCounter() {
                   gradient="from-violet-500 to-purple-500"
                 />
 
-               
-
                 <StatCard
                   icon={
                     <AlignLeft className="w-4 h-4" />
@@ -265,6 +269,16 @@ export default function WordCounter() {
             </div>
           </div>
         </div>
+
+        {/* TOOL CONTENT */}
+        <div className="contentWrapper">
+          <About />
+          <HowToUse />
+          <Features />
+          <Benefits />
+          <FAQ />
+        </div>
+
       </div>
     </div>
   );

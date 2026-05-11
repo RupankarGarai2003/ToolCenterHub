@@ -8,27 +8,101 @@ import styles from "../../components/Styles/tool-component/Features.module.css";
 const commonFeatures = [
   "Fast and easy to use",
   "No signup or login required",
-  "Secure processing",
-  "Works on all devices",
-  "High-quality output",
+  "Secure and private processing",
+  "Works on mobile, tablet, and desktop",
+  "High-quality output results",
 ];
 
-// 🔥 Tool-specific features (optional override)
-const toolFeatures = {
-  "word-to-pdf": [
-    "Convert DOCX to PDF instantly",
-    "High-quality PDF output",
-    "Preserves formatting",
+// 🔥 Dynamic keyword-based features
+const dynamicFeatures = {
+  pdf: [
+    "Advanced PDF processing support",
+    "Fast PDF conversion and editing",
+    "Preserves document formatting",
   ],
-  "image-compressor": [
-    "Reduce image size quickly",
-    "Supports JPG, PNG, WebP",
-    "Maintains image quality",
+
+  image: [
+    "Supports popular image formats",
+    "Optimized image processing",
+    "Smooth and responsive workflow",
   ],
-  "pdf-merger": [
-    "Merge multiple PDFs into one",
-    "Reorder files easily",
-    "Fast PDF processing",
+
+  compressor: [
+    "Reduce file size instantly",
+    "Optimized compression technology",
+    "Maintain quality while compressing",
+  ],
+
+  converter: [
+    "Convert files within seconds",
+    "Supports multiple file formats",
+    "Simple drag-and-drop workflow",
+  ],
+
+  merger: [
+    "Combine multiple files into one",
+    "Easy document organization",
+    "Quick file merging process",
+  ],
+
+  splitter: [
+    "Split files into smaller sections",
+    "Extract selected pages easily",
+    "Flexible file separation",
+  ],
+
+  formatter: [
+    "Beautify and organize code",
+    "Improves readability instantly",
+    "Clean structured formatting",
+  ],
+
+  validator: [
+    "Detect syntax and formatting errors",
+    "Instant validation results",
+    "Helpful for debugging workflows",
+  ],
+
+  minifier: [
+    "Reduce code size efficiently",
+    "Improve website loading speed",
+    "Optimize frontend performance",
+  ],
+
+  encoder: [
+    "Safe and reliable encoding",
+    "Supports developer workflows",
+    "Fast browser-based encoding",
+  ],
+
+  decoder: [
+    "Instant content decoding",
+    "Readable and accurate output",
+    "Easy encoded data conversion",
+  ],
+
+  qr: [
+    "Generate QR codes instantly",
+    "Download QR codes easily",
+    "Supports links and text",
+  ],
+
+  password: [
+    "Generate strong secure passwords",
+    "Custom password generation",
+    "Improved account protection",
+  ],
+
+  counter: [
+    "Count words and characters instantly",
+    "SEO-friendly text analysis",
+    "Real-time counting updates",
+  ],
+
+  url: [
+    "Safe URL encoding and decoding",
+    "Supports web-safe formatting",
+    "Useful for developers and SEO",
   ],
 };
 
@@ -38,11 +112,17 @@ export default function Features() {
   // ✅ handle slug safely
   const currentSlug = Array.isArray(slug) ? slug[0] : slug;
 
-  // ✅ merge specific + common features
-  const items = [
-    ...(toolFeatures[currentSlug] || []),
-    ...commonFeatures,
-  ];
+  // ✅ auto-detect matching features
+  let autoFeatures = [];
+
+  Object.keys(dynamicFeatures).forEach((key) => {
+    if (currentSlug?.includes(key)) {
+      autoFeatures.push(...dynamicFeatures[key]);
+    }
+  });
+
+  // ✅ merge + remove duplicates
+  const items = [...new Set([...autoFeatures, ...commonFeatures])];
 
   if (!items.length) return null;
 
@@ -56,15 +136,20 @@ export default function Features() {
             key={i}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1, duration: 0.4 }}
+            transition={{ delay: i * 0.08, duration: 0.4 }}
             whileHover={{ scale: 1.05 }}
             className={styles.card}
           >
             <div className={styles.glow}></div>
 
             <div className={styles.content}>
-              <div className={styles.icon}>{i + 1}</div>
-              <p className={styles.text}>{item}</p>
+              <div className={styles.icon}>
+                {i + 1}
+              </div>
+
+              <p className={styles.text}>
+                {item}
+              </p>
             </div>
           </motion.div>
         ))}

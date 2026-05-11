@@ -18,6 +18,12 @@ import {
   Binary,
   TriangleAlert,
 } from "lucide-react";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 export default function PasswordGenerator() {
   const [password, setPassword] =
@@ -382,6 +388,7 @@ export default function PasswordGenerator() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-[#f4f7fb] py-5 px-3">
       <div className="max-w-6xl mx-auto">
 
@@ -846,6 +853,17 @@ export default function PasswordGenerator() {
         </div>
       </div>
     </div>
+             {/* TOOL CONTENT */}
+        <div className="contentWrapper">
+          <About />
+          <HowToUse />
+          <Features />
+          <Benefits />
+          <FAQ />
+        </div>
+
+      
+    </>
   );
 }
 
@@ -899,7 +917,7 @@ function AnalysisCard({
   value,
 }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4">
+    <div className=" border border-slate-200 rounded-2xl p-4">
 
       <div className="flex items-center gap-2 text-indigo-600 mb-2">
         {icon}
@@ -941,5 +959,6 @@ function ActionButton({
       {icon}
       {label}
     </button>
+    
   );
 }

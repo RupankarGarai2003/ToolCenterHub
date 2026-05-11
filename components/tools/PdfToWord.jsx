@@ -13,6 +13,12 @@ import {
   FileText,
   ScanText,
 } from "lucide-react";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 import { saveAs } from "file-saver";
 
@@ -411,6 +417,7 @@ export default function PDFToWord() {
   };
 
   return (
+    <>
     <div className="max-w-lg mx-auto px-3 py-3 space-y-4">
 
       {/* UPLOADER */}
@@ -653,10 +660,15 @@ export default function PDFToWord() {
       )}
 
       {/* FOOTER */}
-      <div className="text-center text-xs text-gray-500 flex items-center justify-center gap-2 pb-2">
-        <Shield size={14} />
-        Files are processed locally in your browser.
-      </div>
+     
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

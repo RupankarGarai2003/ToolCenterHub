@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import About from "@/components/tool-content/About";
-// import HowToUse from "@/components/tool-content/HowToUse";
+import HowToUse from "@/components/tool-content/HowToUse";
 import Features from "@/components/tool-content/Features";
 import Benefits from "@/components/tool-content/Benefits";
 import FAQ from "@/components/tool-content/FAQ";
@@ -199,7 +199,7 @@ export default function JSMinifier() {
 
       <div className="contentWrapper">
         <About />
-        {/* <HowToUse /> */}
+        <HowToUse />
         <Features />
         <Benefits />
         <FAQ />

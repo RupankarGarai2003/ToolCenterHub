@@ -11,6 +11,12 @@ import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
 
 import { saveAs } from "file-saver";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
 
 import {
   Download,
@@ -463,6 +469,7 @@ export default function PDFSplitter() {
   };
 
   return (
+    <>
     <div className="max-w-md mx-auto space-y-6 py-8">
 
       {/* UPLOADER */}
@@ -835,5 +842,13 @@ export default function PDFSplitter() {
         Your files remain private
       </p>
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }

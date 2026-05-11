@@ -12,6 +12,13 @@ import {
   Braces,
 } from "lucide-react";
 
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
+
 export default function JSONFormatter() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -97,6 +104,7 @@ export default function JSONFormatter() {
   };
 
   return (
+    <>
     <div className="bg-white py-4 px-3">
       <div className="max-w-6xl mx-auto">
 
@@ -282,6 +290,14 @@ export default function JSONFormatter() {
         </div>
       </div>
     </div>
+          <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
+      </div>
+    </>
   );
 }
 

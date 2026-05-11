@@ -20,6 +20,14 @@ import {
   Shield,
 } from "lucide-react";
 
+import ImageUploader from "./ImageUploader";
+import About from "@/components/tool-content/About";
+import HowToUse from "@/components/tool-content/HowToUse";
+import Features from "@/components/tool-content/Features";
+import Benefits from "@/components/tool-content/Benefits";
+import FAQ from "@/components/tool-content/FAQ";
+import CustomButton from "../tools/CustomButton";
+
 export default function AdvancedQRCodeGenerator() {
   const qrRef = useRef(null);
 
@@ -568,6 +576,14 @@ export default function AdvancedQRCodeGenerator() {
             </div>
           </div>
         </div>
+      </div>
+       {/* TOOL CONTENT */}
+      <div className="contentWrapper">
+        <About />
+        <HowToUse />
+        <Features />
+        <Benefits />
+        <FAQ />
       </div>
     </div>
   );

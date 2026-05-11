@@ -36,7 +36,9 @@ export default function Header() {
         setMenuOpen(false);
       }
     };
+
     document.addEventListener("mousedown", close);
+
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
@@ -86,6 +88,7 @@ export default function Header() {
                       className="dropdown-card"
                     >
                       <div className="dot"></div>
+
                       <div>
                         <p>{tool.name}</p>
                       </div>
@@ -117,6 +120,7 @@ export default function Header() {
                     className="dropdown-card"
                   >
                     <div className="dot purple"></div>
+
                     <div>
                       <p>{tool.name}</p>
                     </div>
@@ -139,35 +143,12 @@ export default function Header() {
           {menuOpen && (
             <div className="menu-dropdown">
 
-              {/* MOBILE NAV ITEMS */}
-              <div className="mobile-nav">
-                <p className="menu-title">Menu</p>
-
-                {menus.map((m) => (
-                  <button
-                    key={m.key}
-                    onClick={() => toggle(m.key)}
-                    className="mobile-item"
-                  >
-                    {m.name}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => toggle("trending")}
-                  className="mobile-item"
-                >
-                  🔥 Trending
-                </button>
-              </div>
-
-              {/* STATIC LINKS */}
-              <div className="menu-divider"></div>
-
+              {/* STATIC LINKS ONLY */}
               <Link href="/about-us">About</Link>
               <Link href="/privacy-policy">Policy</Link>
               <Link href="/contact-us">Contact</Link>
               <Link href="/help">Help</Link>
+
             </div>
           )}
         </div>
