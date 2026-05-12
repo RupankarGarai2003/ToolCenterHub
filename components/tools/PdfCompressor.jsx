@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 
-import { PDFDocument } from "pdf-lib";
-
-import * as pdfjsLib from "pdfjs-dist";
-
 import {
-  Shield,
   CheckCircle2,
   Loader2,
   FileText,
@@ -25,35 +20,28 @@ import Features from "@/components/tool-content/Features";
 import Benefits from "@/components/tool-content/Benefits";
 import FAQ from "@/components/tool-content/FAQ";
 
-// PDF.JS WORKER
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-
-// REALISTIC COMPRESSION LEVELS
+// LEVELS
 const COMPRESSION_OPTIONS = {
   low: {
-    scale: 1.2,
-    quality: 0.65,
     label: "Low",
-    description: "10–20% reduction",
+    description:
+      "10–15% reduction",
   },
 
   medium: {
-    scale: 0.9,
-    quality: 0.45,
     label: "Medium",
-    description: "20–40% reduction",
+    description:
+      "15–40% reduction",
   },
 
   strong: {
-    scale: 0.65,
-    quality: 0.22,
     label: "Strong",
-    description: "40–70% reduction",
+    description:
+      "40–70% reduction",
   },
 };
 
-// FORMAT BYTES
+// FORMAT SIZE
 function formatBytes(bytes) {
   if (!bytes) return "0 B";
 
@@ -63,6 +51,7 @@ function formatBytes(bytes) {
     "B",
     "KB",
     "MB",
+    "GB",
   ];
 
   const i = Math.floor(
@@ -80,7 +69,7 @@ function formatBytes(bytes) {
   );
 }
 
-export default function PDFCompressor() {
+export default function PdfCompressor() {
   const [file, setFile] =
     useState(null);
 
@@ -140,7 +129,7 @@ export default function PDFCompressor() {
     setResult(null);
   };
 
-  // REAL PDF COMPRESSION
+  // REAL API COMPRESSION
   const handleCompress =
     async () => {
       if (!file) return;
@@ -148,112 +137,37 @@ export default function PDFCompressor() {
       try {
         setCompressing(true);
 
-        const config =
-          COMPRESSION_OPTIONS[
-            level
-          ];
+        const formData =
+          new FormData();
 
-        const arrayBuffer =
-          await file.arrayBuffer();
+        formData.append(
+          "file",
+          file
+        );
 
-        // LOAD PDF
-        const pdf =
-          await pdfjsLib.getDocument(
+        formData.append(
+          "level",
+          level
+        );
+
+        const response =
+          await fetch(
+            "/api/compress",
             {
-              data: arrayBuffer,
+              method: "POST",
+              body: formData,
             }
-          ).promise;
+          );
 
-        // CREATE NEW PDF
-        const newPdf =
-          await PDFDocument.create();
-
-        // EACH PAGE
-        for (
-          let i = 1;
-          i <= pdf.numPages;
-          i++
-        ) {
-          const page =
-            await pdf.getPage(i);
-
-          const viewport =
-            page.getViewport({
-              scale:
-                config.scale,
-            });
-
-          // CANVAS
-          const canvas =
-            document.createElement(
-              "canvas"
-            );
-
-          const context =
-            canvas.getContext(
-              "2d"
-            );
-
-          canvas.width =
-            viewport.width;
-
-          canvas.height =
-            viewport.height;
-
-          // RENDER PAGE
-          await page.render({
-            canvasContext:
-              context,
-
-            viewport,
-          }).promise;
-
-          // JPEG IMAGE
-          const imageData =
-            canvas.toDataURL(
-              "image/jpeg",
-              config.quality
-            );
-
-          const jpgImage =
-            await newPdf.embedJpg(
-              imageData
-            );
-
-          // ADD PAGE
-          const pdfPage =
-            newPdf.addPage([
-              viewport.width,
-              viewport.height,
-            ]);
-
-          pdfPage.drawImage(
-            jpgImage,
-            {
-              x: 0,
-              y: 0,
-              width:
-                viewport.width,
-              height:
-                viewport.height,
-            }
+        if (!response.ok) {
+          throw new Error(
+            "Compression failed"
           );
         }
 
-        // SAVE NEW PDF
-        const pdfBytes =
-          await newPdf.save();
-
         const blob =
-          new Blob(
-            [pdfBytes],
-            {
-              type:
-                "application/pdf",
-            }
-          );
+          await response.blob();
 
-        // REDUCTION
         let reduction =
           Math.round(
             ((file.size -
@@ -262,7 +176,6 @@ export default function PDFCompressor() {
               100
           );
 
-        // NEVER NEGATIVE
         if (reduction < 0) {
           reduction = 0;
         }
@@ -325,12 +238,10 @@ export default function PDFCompressor() {
 
           <div className="bg-white rounded-[32px] shadow-xl p-8 text-center space-y-6">
 
-            {/* ICON */}
             <div className="w-24 h-24 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-12 h-12" />
             </div>
 
-            {/* TITLE */}
             <div>
               <h2 className="text-3xl font-black text-gray-900">
                 PDF Compressed
@@ -345,7 +256,6 @@ export default function PDFCompressor() {
             {/* STATS */}
             <div className="space-y-4">
 
-              {/* ORIGINAL */}
               <div className="bg-gray-50 rounded-3xl py-6">
                 <p className="text-gray-600 text-sm">
                   Original
@@ -358,7 +268,6 @@ export default function PDFCompressor() {
                 </h3>
               </div>
 
-              {/* NEW */}
               <div className="bg-blue-50 rounded-3xl py-6">
                 <p className="text-blue-400 text-sm">
                   New
@@ -371,7 +280,6 @@ export default function PDFCompressor() {
                 </h3>
               </div>
 
-              {/* REDUCED */}
               <div className="bg-green-50 rounded-3xl py-6">
                 <p className="text-green-500 text-sm">
                   Reduced
@@ -389,7 +297,6 @@ export default function PDFCompressor() {
             {/* BUTTONS */}
             <div className="flex gap-4">
 
-              {/* RESET */}
               <button
                 onClick={
                   handleRemove
@@ -410,7 +317,6 @@ export default function PDFCompressor() {
                 Reset
               </button>
 
-              {/* DOWNLOAD */}
               <button
                 onClick={download}
                 className="
@@ -432,11 +338,8 @@ export default function PDFCompressor() {
               </button>
             </div>
           </div>
-
-       
         </div>
 
-        {/* CONTENT */}
         <div className="contentWrapper">
           <About />
           <HowToUse />
@@ -448,12 +351,10 @@ export default function PDFCompressor() {
     );
   }
 
-  // MAIN UI
   return (
     <>
       <div className="max-w-md mx-auto space-y-6">
 
-        {/* UPLOADER */}
         <ImageUploader
           preview={null}
           type="document"
@@ -481,11 +382,9 @@ export default function PDFCompressor() {
           }
         />
 
-        {/* OPTIONS */}
         {file && (
           <div className="bg-white rounded-[32px] shadow-xl p-6 space-y-6">
 
-            {/* HEADER */}
             <div className="text-center">
 
               <div className="w-20 h-20 rounded-3xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
@@ -516,18 +415,18 @@ export default function PDFCompressor() {
                       setLevel(key)
                     }
                     className={`
-                    w-full
-                    rounded-2xl
-                    border
-                    p-4
-                    text-left
-                    transition-all
-                    ${
-                      level === key
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 bg-white"
-                    }
-                  `}
+                      w-full
+                      rounded-2xl
+                      border
+                      p-4
+                      text-left
+                      transition-all
+                      ${
+                        level === key
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 bg-white"
+                      }
+                    `}
                   >
 
                     <div className="flex items-center justify-between">
@@ -549,13 +448,13 @@ export default function PDFCompressor() {
 
                       <div
                         className={`
-                        w-5 h-5 rounded-full border-2
-                        ${
-                          level === key
-                            ? "border-blue-500 bg-blue-500"
-                            : "border-gray-300"
-                        }
-                      `}
+                          w-5 h-5 rounded-full border-2
+                          ${
+                            level === key
+                              ? "border-blue-500 bg-blue-500"
+                              : "border-gray-300"
+                          }
+                        `}
                       />
                     </div>
                   </button>
@@ -580,11 +479,8 @@ export default function PDFCompressor() {
             </CustomButton>
           </div>
         )}
-
-      
       </div>
 
-      {/* CONTENT */}
       <div className="contentWrapper">
         <About />
         <HowToUse />
