@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import ImageUploader from "./ImageUploader";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 import About from "@/components/tool-content/About";
@@ -11,7 +11,6 @@ import Benefits from "@/components/tool-content/Benefits";
 import FAQ from "@/components/tool-content/FAQ";
 
 import {
-  Upload,
   Download,
   RotateCcw,
   Loader2,
@@ -178,44 +177,41 @@ export default function PdfToJpg() {
 
         <div className="max-w-6xl mx-auto">
 
-          {/* UPLOAD */}
+          {/* UPLOADER */}
           {!file && (
-            <label
-              className="
-                border-2 border-dashed
-                border-gray-300
-                rounded-3xl
-                p-10
-                flex flex-col
-                items-center
-                justify-center
-                cursor-pointer
-                hover:bg-gray-50
-                transition-all
-              "
-            >
+            <ImageUploader
+              preview={null}
+              type="document"
+              accept=".pdf"
+              supportedText="Supports PDF"
+              fileData={
+                file
+                  ? {
+                    name: file.name,
+                    size:
+                      (
+                        file.size / 1024
+                      ).toFixed(1) + " KB",
+                  }
+                  : null
+              }
+              onChange={(e) =>
+                handleFile(
+                  e.target.files?.[0]
+                )
+              }
+              onDrop={(e) => {
+                e.preventDefault();
 
-              <Upload className="w-12 h-12 text-blue-500 mb-4" />
-
-              <p className="font-semibold text-lg">
-                Upload PDF
-              </p>
-
-              <p className="text-sm text-gray-500 mt-2">
-                Click to browse your file
-              </p>
-
-              <input
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={(e) =>
-                  handleFile(
-                    e.target.files[0]
-                  )
-                }
-              />
-            </label>
+                handleFile(
+                  e.dataTransfer.files?.[0]
+                );
+              }}
+              onDragOver={(e) =>
+                e.preventDefault()
+              }
+              onRemove={reset}
+            />
           )}
 
           {/* FILE INFO */}

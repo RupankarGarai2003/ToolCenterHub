@@ -433,12 +433,7 @@ export default function PDFCompressor() {
             </div>
           </div>
 
-          {/* FOOTER */}
-          <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-2 mt-6">
-            <Shield size={16} />
-            Files are processed
-            locally in your browser
-          </p>
+       
         </div>
 
         {/* CONTENT */}
@@ -586,12 +581,7 @@ export default function PDFCompressor() {
           </div>
         )}
 
-        {/* FOOTER */}
-        <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-2">
-          <Shield size={16} />
-          Files are processed
-          locally in your browser
-        </p>
+      
       </div>
 
       {/* CONTENT */}

@@ -281,21 +281,21 @@ export default function ImageResizer() {
         const data =
           format ===
             "image/jpeg" ||
-          format ===
+            format ===
             "image/webp"
             ? canvas.toDataURL(
-                format,
-                quality
-              )
+              format,
+              quality
+            )
             : canvas.toDataURL(
-                format
-              );
+              format
+            );
 
         const size =
           Math.round(
             (data.length * 3) /
-              4 /
-              1024
+            4 /
+            1024
           );
 
         setEstimatedSize(size);
@@ -361,21 +361,21 @@ export default function ImageResizer() {
       const result =
         format ===
           "image/jpeg" ||
-        format ===
+          format ===
           "image/webp"
           ? canvas.toDataURL(
-              format,
-              quality
-            )
+            format,
+            quality
+          )
           : canvas.toDataURL(
-              format
-            );
+            format
+          );
 
       const finalSize =
         Math.round(
           (result.length * 3) /
-            4 /
-            1024
+          4 /
+          1024
         );
 
       setEstimatedSize(
@@ -976,16 +976,7 @@ export default function ImageResizer() {
           </div>
         )}
 
-        {/* FOOTER */}
-        <p
-          className="
-            text-xs text-center text-gray-500
-            flex items-center justify-center gap-2
-          "
-        >
-          <Shield size={16} />
-          Your images remain private
-        </p>
+
       </div>
 
       {/* CONTENT */}

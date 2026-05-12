@@ -831,16 +831,7 @@ export default function PDFSplitter() {
         </div>
       )}
 
-      {/* FOOTER */}
-      <p
-        className="
-          text-xs text-center text-gray-500
-          flex items-center justify-center gap-2
-        "
-      >
-        <Shield size={16} />
-        Your files remain private
-      </p>
+
     </div>
           <div className="contentWrapper">
         <About />

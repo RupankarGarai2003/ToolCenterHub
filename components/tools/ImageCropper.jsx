@@ -818,16 +818,7 @@ export default function ImageCropper() {
           </div>
         )}
 
-        {/* FOOTER */}
-        <p
-          className="
-            text-xs text-center text-gray-500
-            flex items-center justify-center gap-2
-          "
-        >
-          <Shield size={16} />
-          Your images remain private
-        </p>
+
 
         {/* HIDDEN CANVAS */}
         <canvas
