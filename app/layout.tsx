@@ -2,6 +2,7 @@ import "./globals.css";
 import Header from "@/components/tools/Header";
 import Footer from "@/components/tools/Footer";
 import { Montserrat, Inter } from "next/font/google";
+import Script from "next/script";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -33,6 +34,22 @@ export default function RootLayout({
         <Header />
         <main className="min-h-screen">{children}</main>
         <Footer />
+
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-KTXCDXL76Y"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-KTXCDXL76Y');
+          `}
+        </Script>
       </body>
     </html>
   );
