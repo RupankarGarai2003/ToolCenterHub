@@ -134,7 +134,7 @@ export default function URLEncoder() {
         {/* Footer */}
         <div className="mt-5 text-center">
           <span className="inline-block text-xs text-gray-500 bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg">
-            🔒 Encoding happens locally in your browser.
+            🔒 Encoding happens locally in your browser.@R
           </span>
         </div>
       </div>
